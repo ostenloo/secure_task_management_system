@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/out-tsc",
+    "declaration": true,
+    "types": ["node"],
+    // Allow imports from referenced projects by not restricting rootDir to this lib
+    // (tsc will infer a common rootDir for project references)
+    // Alternatively, explicitly set rootDir to workspaceRoot if needed.
+    // "rootDir": "../../"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"]
+}

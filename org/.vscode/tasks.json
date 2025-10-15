@@ -1,0 +1,66 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "serve-dashboard-static",
+			"type": "shell",
+			"command": "npx http-server dist/apps/dashboard/browser -p 4200 --silent",
+			"isBackground": true,
+			"group": "build"
+		},
+		{
+			"label": "build dashboard",
+			"type": "shell",
+			"command": "npx nx build dashboard --skip-nx-cache",
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "nx build dashboard",
+			"type": "shell",
+			"command": "npx nx build dashboard --skip-nx-cache",
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "build api",
+			"type": "shell",
+			"command": "npx nx build api --skip-nx-cache",
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "build api and dashboard",
+			"type": "shell",
+			"command": "npx nx build api --skip-nx-cache && npx nx build dashboard --skip-nx-cache",
+			"args": [],
+			"problemMatcher": [
+				"$tsc",
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "build:all",
+			"type": "shell",
+			"command": "npx nx build api --skip-nx-cache && npx nx build dashboard --skip-nx-cache",
+			"args": [],
+			"problemMatcher": [
+				"$tsc",
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "nx: build api",
+			"type": "shell",
+			"command": "npm run -s nx -- build api --output-style=stream-without-prefixes"
+		}
+	]
+}

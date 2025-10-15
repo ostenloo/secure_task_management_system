@@ -1,0 +1,29 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Serve API (org)",
+      "type": "shell",
+      "command": "npx",
+      "args": ["nx", "serve", "api", "--configuration=development", "--no-daemon"],
+      "options": {
+        "cwd": "${workspaceFolder}/org"
+      },
+      "problemMatcher": ["$tsc"],
+      "isBackground": true,
+      "group": "build"
+    },
+    {
+      "label": "Serve Dashboard (org)",
+      "type": "shell",
+      "command": "npx",
+      "args": ["nx", "serve", "dashboard", "--no-daemon"],
+      "options": {
+        "cwd": "${workspaceFolder}/org"
+      },
+      "problemMatcher": ["$tsc"],
+      "isBackground": true,
+      "group": "build"
+    }
+  ]
+}

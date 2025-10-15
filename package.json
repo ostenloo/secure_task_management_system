@@ -1,0 +1,13 @@
+{
+  "name": "secure-task-management-system-root",
+  "private": true,
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "serve:api": "cd org && npx nx serve api",
+    "serve:api:dev": "cd org && npx nx serve api --configuration=development",
+    "serve:dashboard": "cd org && npx nx serve dashboard",
+    "build:all": "cd org && npx nx run-many --target=build --all",
+    "seed": "cd org && npx nx run api:seed"
+  }
+}

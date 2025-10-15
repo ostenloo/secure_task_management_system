@@ -6,3 +6,14 @@
 
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
+
+# Local SQLite databases
+data/
+org/data/
+*.db
+
+# Local environment files
+.env
+.env.local
+org/.env
+org/.env.local
