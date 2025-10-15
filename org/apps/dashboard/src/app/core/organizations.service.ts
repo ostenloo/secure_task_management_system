@@ -6,7 +6,6 @@ export interface OrganizationItem {
   id: string;
   name: string;
   description?: string;
-  parentId?: string;
   isActive: boolean;
   createdAt: string;
   role?: string | null;
@@ -44,7 +43,7 @@ export class OrganizationsServiceClient {
     return this.http.post(`${API_BASE_URL}/users/invite`, payload);
   }
 
-  createOrganization(payload: { name: string; description?: string; parentId?: string }) {
+  createOrganization(payload: { name: string; description?: string }) {
     return this.http.post(`${API_BASE_URL}/organizations`, payload);
   }
 }

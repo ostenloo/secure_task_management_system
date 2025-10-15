@@ -132,7 +132,6 @@ export class OrgContextService {
       id: membership.organizationId,
       name: membership.organizationName ?? 'Organization',
       description: '',
-      parentId: undefined,
       isActive: true,
       createdAt: new Date().toISOString(),
       role: membership.roleName ?? null,

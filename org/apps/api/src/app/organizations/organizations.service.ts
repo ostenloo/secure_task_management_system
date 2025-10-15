@@ -23,8 +23,6 @@ export class OrganizationsService {
     const entity = this.organizations.create({
       name: dto.name,
       description: dto.description,
-      // Flat hierarchy: no parent-child relationships
-      parentId: null,
       isActive: true,
     });
     const organization = await this.organizations.save(entity);
@@ -106,7 +104,6 @@ export class OrganizationsService {
       id: m.organizationId,
       name: m.organization?.name || 'Organization',
       description: m.organization?.description,
-      parentId: m.organization?.parentId,
       isActive: m.organization?.isActive ?? true,
       createdAt: m.organization?.createdAt ?? new Date(),
       role: m.role?.name || null,

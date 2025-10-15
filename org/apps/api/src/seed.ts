@@ -88,7 +88,7 @@ async function main() {
   }
 
   const ownerUser = await ensureGlobalUser('owner@123.com', 'Owner', 'Person');
-  const adminUser = await ensureGlobalUser('user1@123.com', 'User', 'One');
+  const adminUser = await ensureGlobalUser('admin1@123.com', 'Admin', 'One');
   const viewerUser1 = await ensureGlobalUser('user2@123.com', 'User', 'Two');
   const viewerUser2 = await ensureGlobalUser('user3@123.com', 'User', 'Three');
 

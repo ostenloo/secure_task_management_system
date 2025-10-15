@@ -9,8 +9,4 @@ export class CreateOrganizationDto {
   @IsString()
   @MaxLength(2000)
   description?: string;
-
-  @IsOptional()
-  @IsString()
-  parentId?: string;
 }

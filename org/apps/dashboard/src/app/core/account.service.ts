@@ -5,7 +5,6 @@ import { API_BASE_URL } from './constants';
 export interface CreateOrganizationPayload {
   name: string;
   description?: string;
-  parentId?: string;
 }
 
 export interface InviteUserPayload {
