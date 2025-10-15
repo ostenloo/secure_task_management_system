@@ -3,27 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, map, Observable, tap } from 'rxjs';
 import { API_BASE_URL, SESSION_STORAGE_KEY } from './constants';
-
-export interface AuthUser {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  roleId?: string;
-  roleName?: string;
-  organizationId?: string;
-  permissions?: string[];
-}
-
-export interface LoginPayload {
-  email: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  user: AuthUser;
-  token: string;
-}
+import { OrgContextService } from './org-context.service';
+import { AuthUser, LoginPayload, LoginResponse } from './auth.models';
 
 interface StoredSession {
   token: string;
@@ -37,6 +18,7 @@ interface StoredSession {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly orgCtx = inject(OrgContextService);
   private readonly session$ = new BehaviorSubject<StoredSession | null>(null);
 
   readonly user$: Observable<AuthUser | null> = this.session$.pipe(
@@ -72,6 +54,7 @@ export class AuthService {
   logout(): void {
     this.session$.next(null);
     localStorage.removeItem(SESSION_STORAGE_KEY);
+    this.orgCtx.clear();
     void this.router.navigate(['/login']);
   }
 
@@ -83,6 +66,11 @@ export class AuthService {
     };
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
     this.session$.next(session);
+    this.orgCtx.setMemberships(response.user.memberships || []);
+    const defaultOrgId = response.user.defaultOrganizationId ?? response.user.memberships?.[0]?.organizationId ?? null;
+    if (defaultOrgId) {
+      this.orgCtx.setCurrentById(defaultOrgId);
+    }
   }
 
   private restore(): void {
@@ -92,6 +80,11 @@ export class AuthService {
       const parsed = JSON.parse(raw) as StoredSession;
       if (parsed?.token) {
         this.session$.next(parsed);
+        this.orgCtx.setMemberships(parsed.user?.memberships || []);
+        const defaultOrgId = parsed.user?.defaultOrganizationId ?? parsed.user?.memberships?.[0]?.organizationId ?? null;
+        if (defaultOrgId) {
+          this.orgCtx.setCurrentById(defaultOrgId);
+        }
       }
     } catch {
       localStorage.removeItem(SESSION_STORAGE_KEY);

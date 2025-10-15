@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard, PermissionsGuard, RequirePermissions } from '@org/auth';
 import { UsersService } from './users.service';
 import { InviteUserDto } from './dtos';
@@ -9,8 +9,8 @@ export class UsersController {
   constructor(private readonly users: UsersService) {}
 
   @Get('')
-  async list(@Req() req: any, @Query('organizationId') organizationId?: string) {
-    return this.users.list(req.user, organizationId);
+  async list(@Req() req: any) {
+    return this.users.list(req.user);
   }
 
   @Post('invite')

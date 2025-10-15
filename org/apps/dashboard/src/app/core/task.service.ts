@@ -6,6 +6,7 @@ import {
   combineLatest,
   finalize,
   map,
+  of,
   tap,
 } from 'rxjs';
 import { API_BASE_URL } from './constants';
@@ -87,11 +88,15 @@ export class TaskService {
   });
 
   // Clear tasks immediately when organization context changes to avoid flashing stale tasks
-  private readonly _orgSub = this.orgCtx.organization$.subscribe(() => {
+  private readonly _orgSub = this.orgCtx.organization$.subscribe((org) => {
     // Enter loading state and clear current tasks immediately to prevent cross-org flicker
     this.loadingSubject.next(true);
     this.tasksSubject.next([]);
     this.filterSubject.next({ status: 'all', due: 'all' });
+    if (!org?.id) {
+      this.loadingSubject.next(false);
+      return;
+    }
     // Kick off a fresh load for the new organization
     void this.load().subscribe({
       error: () => this.loadingSubject.next(false),
@@ -107,9 +112,15 @@ export class TaskService {
   );
 
   load(): Observable<TaskModel[]> {
-    this.loadingSubject.next(true);
     const orgId = this.orgCtx.current?.id;
-    const url = orgId ? `${API_BASE_URL}/tasks?organizationId=${encodeURIComponent(orgId)}` : `${API_BASE_URL}/tasks`;
+    if (!orgId) {
+      this.loadingSubject.next(false);
+      const empty: TaskModel[] = [];
+      this.tasksSubject.next(empty);
+      return of(empty);
+    }
+    this.loadingSubject.next(true);
+    const url = `${API_BASE_URL}/tasks`;
     return this.http.get<TaskApiModel[]>(url).pipe(
       map((items) =>
         items
@@ -134,8 +145,7 @@ export class TaskService {
       ...payload,
       status: payload.status ?? TaskStatus.TODO,
     };
-  const orgId = this.orgCtx.current?.id;
-    const url = orgId ? `${API_BASE_URL}/tasks?organizationId=${encodeURIComponent(orgId)}` : `${API_BASE_URL}/tasks`;
+    const url = `${API_BASE_URL}/tasks`;
     return this.http.post<TaskApiModel>(url, body).pipe(
       map((item) => this.mapTask(item)),
       tap((task) => {
@@ -148,8 +158,7 @@ export class TaskService {
   }
 
   update(id: string, changes: UpdateTaskInput): Observable<TaskModel> {
-    const orgId = this.orgCtx.current?.id;
-    const url = orgId ? `${API_BASE_URL}/tasks/${id}?organizationId=${encodeURIComponent(orgId)}` : `${API_BASE_URL}/tasks/${id}`;
+    const url = `${API_BASE_URL}/tasks/${id}`;
     return this.http
       .put<TaskApiModel>(url, changes)
       .pipe(
@@ -164,8 +173,7 @@ export class TaskService {
   }
 
   remove(id: string): Observable<void> {
-    const orgId = this.orgCtx.current?.id;
-    const url = orgId ? `${API_BASE_URL}/tasks/${id}?organizationId=${encodeURIComponent(orgId)}` : `${API_BASE_URL}/tasks/${id}`;
+    const url = `${API_BASE_URL}/tasks/${id}`;
     return this.http
       .delete<void>(url)
       .pipe(
@@ -179,10 +187,7 @@ export class TaskService {
 
   moveTask(taskId: string, status: TaskStatus, index: number): Observable<TaskModel> {
     const rearranged = this.reorderLocal(taskId, status, index);
-    const orgId = this.orgCtx.current?.id;
-    const url = orgId
-      ? `${API_BASE_URL}/tasks/${taskId}/status?organizationId=${encodeURIComponent(orgId)}`
-      : `${API_BASE_URL}/tasks/${taskId}/status`;
+    const url = `${API_BASE_URL}/tasks/${taskId}/status`;
     const request$ = this.http
       .patch<TaskApiModel>(url, {
         status,

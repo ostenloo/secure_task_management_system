@@ -136,11 +136,6 @@ export class UsersListComponent implements OnInit {
   }
 
 
-  hasPermission(name: string): boolean {
-    const perms = this.auth.currentUser?.permissions || [];
-    return perms.includes(name);
-  }
-
   logout(): void {
     this.auth.logout();
   }

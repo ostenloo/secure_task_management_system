@@ -13,8 +13,8 @@ export class TasksService {
   constructor(
     @InjectRepository(TaskEntity) private tasks: Repository<TaskEntity>,
     @InjectRepository(AuditLogEntity) private audit: Repository<AuditLogEntity>,
-  @InjectRepository(UserEntity) private users: Repository<UserEntity>,
-  @InjectRepository(UserOrganizationEntity) private memberships: Repository<UserOrganizationEntity>,
+    @InjectRepository(UserEntity) private users: Repository<UserEntity>,
+    @InjectRepository(UserOrganizationEntity) private memberships: Repository<UserOrganizationEntity>,
     @InjectRepository(OrganizationEntity) private orgs: Repository<OrganizationEntity>,
   ) {}
 
@@ -38,8 +38,8 @@ export class TasksService {
     return member?.role?.name?.toLowerCase?.() ?? null;
   }
 
-  async create(user: any, dto: CreateTaskDto, targetOrgId?: string) {
-  const organizationId = await this.resolveOrgId(user, targetOrgId);
+  async create(user: any, dto: CreateTaskDto) {
+    const organizationId = await this.resolveOrgId(user);
     const roleName = (await this.getOrgRoleName(user.id, organizationId)) || '';
     const isOwnerOrAdmin = roleName === 'owner' || roleName === 'admin';
     if (!isOwnerOrAdmin) {
@@ -67,9 +67,9 @@ export class TasksService {
     return saved;
   }
 
-  async list(user: any, targetOrgId?: string) {
-  const organizationId = await this.resolveOrgId(user, targetOrgId);
-  const role = (await this.getOrgRoleName(user.id, organizationId)) || '';
+  async list(user: any) {
+    const organizationId = await this.resolveOrgId(user);
+    const role = (await this.getOrgRoleName(user.id, organizationId)) || '';
     // Scope by organization; restrict viewer visibility to only assigned tasks
     if (role === 'viewer') {
       return this.tasks.find({ where: { organizationId, assigneeId: user.id } });
@@ -77,12 +77,12 @@ export class TasksService {
     return this.tasks.find({ where: { organizationId } });
   }
 
-  async update(user: any, id: string, dto: UpdateTaskDto, targetOrgId?: string) {
-  const organizationId = await this.resolveOrgId(user, targetOrgId);
+  async update(user: any, id: string, dto: UpdateTaskDto) {
+    const organizationId = await this.resolveOrgId(user);
     const existing = await this.tasks.findOne({ where: { id } });
     if (!existing) throw new NotFoundException('Task not found');
     if (existing.organizationId !== organizationId) throw new ForbiddenException('Cross-org access denied');
-  const role = (await this.getOrgRoleName(user.id, organizationId)) || '';
+    const role = (await this.getOrgRoleName(user.id, organizationId)) || '';
     const isOwnerRole = role === 'owner';
     const isAdminRole = role === 'admin';
     const isViewerRole = role === 'viewer';
@@ -154,12 +154,12 @@ export class TasksService {
     return saved;
   }
 
-  async remove(user: any, id: string, targetOrgId?: string) {
-  const organizationId = await this.resolveOrgId(user, targetOrgId);
+  async remove(user: any, id: string) {
+    const organizationId = await this.resolveOrgId(user);
     const existing = await this.tasks.findOne({ where: { id } });
     if (!existing) throw new NotFoundException('Task not found');
     if (existing.organizationId !== organizationId) throw new ForbiddenException('Cross-org access denied');
-  const role = (await this.getOrgRoleName(user.id, organizationId)) || '';
+    const role = (await this.getOrgRoleName(user.id, organizationId)) || '';
     const isOwner = existing.createdById === user.id;
     const isAdmin = role === 'admin' || role === 'owner';
     if (!isOwner && !isAdmin) throw new ForbiddenException('Not permitted');
@@ -168,8 +168,8 @@ export class TasksService {
     return { success: true };
   }
 
-  async moveStatus(user: any, id: string, status: TaskStatusDto, order?: number, targetOrgId?: string) {
-    const organizationId = await this.resolveOrgId(user, targetOrgId);
+  async moveStatus(user: any, id: string, status: TaskStatusDto, order?: number) {
+    const organizationId = await this.resolveOrgId(user);
     const existing = await this.tasks.findOne({ where: { id } });
     if (!existing) throw new NotFoundException('Task not found');
     if (existing.organizationId !== organizationId) throw new ForbiddenException('Cross-org access denied');
@@ -196,21 +196,20 @@ export class TasksService {
   }
 
   private async resolveOrgId(user: any, targetOrgId?: string): Promise<string> {
-    // If orgId is not provided, try to infer from user's single active membership
-    if (!targetOrgId) {
+    let orgId = targetOrgId ?? user?.organizationId ?? null;
+    if (!orgId) {
       const memberships = await this.memberships.find({ where: { userId: user.id, isActive: true, invitedPending: false } });
       const uniqueOrgIds = Array.from(new Set(memberships.map((m) => m.organizationId)));
       if (uniqueOrgIds.length === 1) {
-        targetOrgId = uniqueOrgIds[0];
+        orgId = uniqueOrgIds[0];
       } else {
         throw new BadRequestException('Organization context is required');
       }
     }
-    // Ensure the user is an active, non-pending member of the target organization
-    const member = await this.memberships.findOne({ where: { userId: user.id, organizationId: targetOrgId, isActive: true, invitedPending: false } });
+    const member = await this.memberships.findOne({ where: { userId: user.id, organizationId: orgId, isActive: true, invitedPending: false } });
     if (!member) {
       throw new ForbiddenException('You are not a member of this organization');
     }
-    return targetOrgId;
+    return orgId;
   }
 }

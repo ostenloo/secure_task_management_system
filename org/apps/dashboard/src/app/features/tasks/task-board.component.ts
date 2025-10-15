@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
-import { AsyncPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { combineLatest, firstValueFrom, map, Subscription, finalize } from 'rxjs';
 import { TaskPriority, TaskStatus } from '@org/data';
@@ -39,7 +38,6 @@ interface DashboardStats {
     TaskFormComponent,
     TaskFiltersComponent,
     TaskCardComponent,
-    AsyncPipe,
     FormsModule,
   ],
   template: `
@@ -53,7 +51,7 @@ interface DashboardStats {
           <div class="flex items-center gap-4 text-sm text-slate-600">
             <div class="text-right">
               <p class="font-medium text-slate-900">{{ vm().user?.firstName || vm().user?.email }}</p>
-              <p class="text-xs capitalize">{{ vm().user?.roleName || 'user' }}</p>
+              <p class="text-xs capitalize">{{ (currentOrgRole() || 'user') | titlecase }}</p>
             </div>
             <a routerLink="/organizations" class="btn-outline">Organizations</a>
             <a *ngIf="!isViewer()" [routerLink]="['/', orgSlug(), 'users']" class="btn-outline">Users</a>
@@ -330,7 +328,7 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
     const r = this.currentOrgRole();
     return r === 'owner' || r === 'admin';
   };
-  readonly canManageOrg = computed(() => this.hasPermission('organizations:create'));
+  readonly canManageOrg = computed(() => this.org.hasAnyRole('owner'));
 
   readonly orgName = computed(() => this.org.current?.name || 'Organization');
   readonly orgSlug = computed(() => {
@@ -345,8 +343,23 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
   });
 
   hasPermission(name: string): boolean {
-    const perms = this.vm().user?.permissions || [];
-    return perms.includes(name);
+    const role = this.currentOrgRole();
+    switch (name) {
+      case 'organizations:create':
+        return this.org.hasAnyRole('owner');
+      case 'users:invite':
+      case 'users:assign-admin':
+      case 'users:assign-viewer':
+        return role === 'owner';
+      case 'tasks:create':
+      case 'tasks:update':
+      case 'tasks:delete':
+        return role === 'owner' || role === 'admin';
+      case 'tasks:move':
+        return role === 'owner' || role === 'admin' || role === 'viewer';
+      default:
+        return false;
+    }
   }
 
   constructor() {

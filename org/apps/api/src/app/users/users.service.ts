@@ -12,19 +12,25 @@ import { UserOrganizationEntity } from '../entities/user-organization.entity';
 @Injectable()
 export class UsersService {
   constructor(
-  @InjectRepository(UserEntity) private readonly users: Repository<UserEntity>,
-  @InjectRepository(UserOrganizationEntity) private readonly memberships: Repository<UserOrganizationEntity>,
+    @InjectRepository(UserEntity) private readonly users: Repository<UserEntity>,
+    @InjectRepository(UserOrganizationEntity) private readonly memberships: Repository<UserOrganizationEntity>,
     @InjectRepository(RoleEntity) private readonly roles: Repository<RoleEntity>,
     @InjectRepository(OrganizationEntity) private readonly organizations: Repository<OrganizationEntity>,
     private readonly organizationsService: OrganizationsService,
   ) {}
 
-  async list(currentUser: any, organizationId?: string) {
+  async list(currentUser: any) {
     if (!currentUser?.id) {
       throw new ForbiddenException('User context is required');
     }
-    // Check membership in target org
-    const targetOrgId = organizationId;
+    let targetOrgId = currentUser.organizationId;
+    if (!targetOrgId) {
+      const memberships = await this.memberships.find({ where: { userId: currentUser.id, isActive: true, invitedPending: false } });
+      const uniqueOrgIds = Array.from(new Set(memberships.map((m) => m.organizationId)));
+      if (uniqueOrgIds.length === 1) {
+        targetOrgId = uniqueOrgIds[0];
+      }
+    }
     if (!targetOrgId) throw new ForbiddenException('Organization context is required');
     const myMembership = await this.memberships.findOne({ where: { userId: currentUser.id, organizationId: targetOrgId, isActive: true, invitedPending: false }, relations: ['role'] });
     if (!myMembership) throw new ForbiddenException('Organization context is required');

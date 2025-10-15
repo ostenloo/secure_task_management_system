@@ -38,11 +38,21 @@ export class AuthService {
   }
 
   async login(user: UserEntity) {
-    // Aggregate permissions across all active, non-pending memberships
     const activeMemberships = await this.memberships.find({
       where: { userId: user.id, isActive: true, invitedPending: false },
-      relations: ['role', 'role.permissions', 'role.inheritsFrom', 'role.inheritsFrom.permissions'],
+      relations: ['role', 'role.permissions', 'role.inheritsFrom', 'role.inheritsFrom.permissions', 'organization'],
     });
+    if (!activeMemberships.length) {
+      throw new UnauthorizedException('No active organization memberships found');
+    }
+
+    const membershipDtos = activeMemberships.map((m) => ({
+      membershipId: m.id,
+      organizationId: m.organizationId,
+      organizationName: m.organization?.name ?? 'Organization',
+      roleId: m.roleId,
+      roleName: m.role?.name ?? null,
+    }));
 
     const permSet = new Set<string>();
     for (const m of activeMemberships) {
@@ -55,14 +65,17 @@ export class AuthService {
     const payload = {
       sub: user.id,
       email: user.email,
-      permissions: aggregatedPermissions,
-    } as any;
+    };
     const accessToken = await this.jwt.signAsync(payload);
+    const defaultMembership = membershipDtos[0] ?? null;
     return {
       user: {
-        ...user,
-        password: undefined,
-        roleName: null,
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        defaultOrganizationId: defaultMembership?.organizationId ?? null,
+        memberships: membershipDtos,
         permissions: aggregatedPermissions,
       },
       token: accessToken,

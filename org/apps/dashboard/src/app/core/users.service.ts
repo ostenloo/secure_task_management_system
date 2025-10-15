@@ -30,12 +30,12 @@ export class UsersService {
       this.cache = null;
     }
     if (cur?.id) {
-      return this.http.get<UserListItem[]>(`${API_BASE_URL}/users?organizationId=${encodeURIComponent(cur.id)}`);
+      return this.http.get<UserListItem[]>(`${API_BASE_URL}/users`);
     }
     return this.orgCtx.organization$.pipe(
       filter((o): o is NonNullable<typeof o> => !!o && !!o.id),
       take(1),
-      switchMap((o) => this.http.get<UserListItem[]>(`${API_BASE_URL}/users?organizationId=${encodeURIComponent(o.id)}`))
+      switchMap(() => this.http.get<UserListItem[]>(`${API_BASE_URL}/users`))
     );
   }
 }

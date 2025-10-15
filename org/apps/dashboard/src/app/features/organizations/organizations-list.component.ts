@@ -130,8 +130,10 @@ export class OrganizationsListComponent implements OnInit {
   }
 
   hasPermission(name: string): boolean {
-    const perms = this.auth.currentUser?.permissions || [];
-    return perms.includes(name);
+    if (name === 'organizations:create') {
+      return this.orgCtx.hasAnyRole('owner');
+    }
+    return false;
   }
 
   trackById = (_: number, o: OrganizationItem) => o.id;
