@@ -11,7 +11,13 @@ npm install
 
 2. **Environment Configuration**
 
-Create an `org/.env` file with the following configuration:
+Copy the example environment file and configure it:
+
+```bash
+cp .env.example .env
+```
+
+Then edit the `.env` file with your configuration:
 
 ```env
 # Database Configuration
@@ -27,6 +33,13 @@ JWT_REFRESH_EXPIRES_IN=7d
 NODE_ENV=development
 PORT=3000
 CORS_ORIGIN=http://localhost:4200
+```
+
+**Important:** Generate secure JWT secrets for production:
+
+```bash
+# Generate a secure JWT secret (64 bytes, base64 encoded)
+openssl rand -base64 64
 ```
 
 3. **Database Setup**
