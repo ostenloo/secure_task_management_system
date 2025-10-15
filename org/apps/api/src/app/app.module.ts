@@ -12,7 +12,7 @@ import { TasksModule } from './tasks/tasks.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { UsersModule } from './users/users.module';
-import { JwtAuthGuard, RolesGuard, PermissionsGuard } from '@org/auth';
+import { JwtAuthGuard, PermissionsGuard } from '@org/auth';
 import { Reflector } from '@nestjs/core';
 
 @Module({
@@ -40,7 +40,6 @@ import { Reflector } from '@nestjs/core';
     AppService,
     Reflector,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
-    { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
   ],
 })

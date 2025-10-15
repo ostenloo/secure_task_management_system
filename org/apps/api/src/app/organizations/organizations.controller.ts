@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Post, Req, UseGuards, Param } from '@nestjs/common';
-import { JwtAuthGuard, PermissionsGuard, RolesGuard, RequirePermissions } from '@org/auth';
+import { JwtAuthGuard, PermissionsGuard, RequirePermissions } from '@org/auth';
 import { OrganizationsService } from './organizations.service';
 import { CreateOrganizationDto } from './dtos';
 
 @Controller('organizations')
-@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class OrganizationsController {
   constructor(private readonly organizations: OrganizationsService) {}
 

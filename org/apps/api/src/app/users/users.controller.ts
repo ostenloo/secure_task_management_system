@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards, Query } from '@nestjs/common';
-import { JwtAuthGuard, PermissionsGuard, RolesGuard, RequirePermissions } from '@org/auth';
+import { JwtAuthGuard, PermissionsGuard, RequirePermissions } from '@org/auth';
 import { UsersService } from './users.service';
 import { InviteUserDto } from './dtos';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class UsersController {
   constructor(private readonly users: UsersService) {}
 
